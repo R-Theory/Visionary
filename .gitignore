@@ -1,0 +1,83 @@
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.template
+
+# macOS cruft
+.DS_Store
+
+# Editor/IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Node.js / Frontend
+node_modules/
+dist/
+build/
+.cache/
+.parcel-cache/
+.turbo/
+.next/
+.nuxt/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.venv/
+venv/
+site/__pycache__/
+coverage/
+.coverage*
+build/
+dist/
+*.egg-info/
+
+# Go
+bin/
+*.test
+coverage.out
+
+# Java / Kotlin / Android
+*.class
+*.jar
+*.war
+.gradle/
+gradle/
+build/
+captures/
+*.iml
+local.properties
+
+# Swift / Xcode
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+xcuserdata/
+.swiftpm/
+.build/
+
+# Rust
+target/
+
+# Databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Terraform
+.terraform/
+*.tfstate*
+crash.log
