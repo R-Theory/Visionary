@@ -1,0 +1,16 @@
+{
+	"name": "Visionary Development",
+	"dockerComposeFile": "../docker-compose.dev.yml",
+	"service": "visionary-app",
+	"workspaceFolder": "/app",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"charliermarsh.ruff"
+			]
+		}
+	},
+	"forwardPorts": [3000, 9001, 27017, 6379],
+	"remoteUser": "root"
+}

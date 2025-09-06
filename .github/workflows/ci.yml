@@ -1,0 +1,261 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20"
+
+jobs:
+  # ================================
+  # Code Quality & Security
+  # ================================
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for better analysis
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          uv pip install --system pre-commit
+          uv pip install --system -r workers/requirements.txt
+
+      - name: Pre-commit checks
+        run: pre-commit run --all-files
+
+      - name: Security scan with Bandit
+        run: |
+          uv pip install --system bandit[toml]
+          bandit -r workers/ -f json -o bandit-report.json || true
+
+      - name: Upload security scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: bandit-report.json
+          category: bandit
+        continue-on-error: true
+
+  # ================================
+  # Documentation Quality
+  # ================================
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install markdownlint
+        run: npm install -g markdownlint-cli
+
+      - name: Lint documentation
+        run: markdownlint my-notes/**/*.md docs/*.md *.md
+
+      - name: Check for broken links
+        run: |
+          npm install -g markdown-link-check
+          find . -name "*.md" -not -path "./.git/*" -not -path "./node_modules/*" | xargs markdown-link-check --config .github/markdown-link-check.json
+
+  # ================================
+  # Backend Testing
+  # ================================
+  backend-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: visionary_test
+          POSTGRES_USER: test_user
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install UV
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          uv pip install --system -r workers/requirements.txt
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/visionary_test
+        run: |
+          # When implemented: alembic upgrade head
+          echo "Database migration placeholder"
+
+      - name: Run unit tests
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/visionary_test
+          REDIS_URL: redis://localhost:6379/0
+          CELERY_BROKER_URL: redis://localhost:6379/0
+          CELERY_RESULT_BACKEND: redis://localhost:6379/0
+        run: |
+          # When implemented: pytest workers/tests/ --cov=workers --cov-report=xml
+          echo "Backend tests placeholder - will run pytest when implemented"
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          file: ./coverage.xml
+          flags: backend
+        continue-on-error: true
+
+  # ================================
+  # Docker Build & Security Scan
+  # ================================
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build worker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: workers/Dockerfile
+          push: false
+          tags: visionary-workers:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "visionary-workers:test"
+          format: "sarif"
+          output: "trivy-results.sarif"
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: "trivy-results.sarif"
+        continue-on-error: true
+
+  # ================================
+  # Integration Tests (Future)
+  # ================================
+  integration:
+    runs-on: ubuntu-latest
+    needs: [quality, backend-tests, docker]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: |
+          docker-compose up -d postgres redis minio
+          docker-compose ps
+
+      - name: Wait for services
+        run: |
+          timeout 60 bash -c 'until docker-compose exec -T postgres pg_isready -U visionary; do sleep 5; done'
+          timeout 60 bash -c 'until docker-compose exec -T redis redis-cli ping; do sleep 5; done'
+
+      - name: Run integration tests
+        run: |
+          # When implemented: Run full stack integration tests
+          echo "Integration tests placeholder - will test full Docker stack"
+
+      - name: Cleanup
+        if: always()
+        run: docker-compose down -v
+
+  # ================================
+  # Deploy to Staging (Future)
+  # ================================
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [quality, backend-tests, docker, integration]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    environment: staging
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        run: |
+          echo "Staging deployment placeholder"
+          # Future: Deploy to staging environment
+          # - Build production images
+          # - Push to container registry
+          # - Deploy via Kubernetes/Docker Swarm
+          # - Run smoke tests
+          # - Notify team of deployment
+
+  # ================================
+  # Deploy to Production (Future)
+  # ================================
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [quality, backend-tests, docker, integration]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to production
+        run: |
+          echo "Production deployment placeholder"
+          # Future: Deploy to production environment
+          # - Require manual approval
+          # - Blue-green deployment
+          # - Automated rollback on failure
+          # - Post-deployment monitoring

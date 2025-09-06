@@ -1,0 +1,53 @@
+{
+  // Workspace recommendations: VS Code will prompt to install these
+  "recommendations": [
+    // === Markdown & Documentation ===
+    "yzhang.markdown-all-in-one",
+    "streetsidesoftware.code-spell-checker",
+    "DavidAnson.vscode-markdownlint",
+    "shd101wyy.markdown-preview-enhanced",
+    "bierner.github-markdown-preview",
+
+    // === Core Development ===
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-toolsai.jupyter",
+    "ms-toolsai.jupyter-keymap",
+    "ms-toolsai.jupyter-renderers",
+    "ms-python.black-formatter",
+    "ms-python.isort",
+    "charliermarsh.ruff",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "EditorConfig.EditorConfig",
+
+    // === AI Integration ===
+    "anthropic.claude-dev",
+    "github.copilot",
+    "github.copilot-chat",
+
+    // === Git & Productivity ===
+    "eamodio.gitlens",
+    "aaron-bond.better-comments",
+    "usernamehw.errorlens",
+    "file-icons.file-icons",
+
+    // === Task Management ===
+    "casey-webb.just",
+    "tamasfe.even-better-toml",
+    "redhat.vscode-yaml",
+    "ms-vscode.makefile-tools",
+    "github.vscode-github-actions",
+    "bradlc.vscode-tailwindcss",
+    "Prisma.prisma",
+
+    // === Docker & Containers ===
+    "ms-azuretools.vscode-docker",
+
+    // === Shell & K8s helpers for container workflows ===
+    "timonwong.shellcheck",
+    "foxundermoon.shell-format",
+    "ms-kubernetes-tools.vscode-kubernetes-tools",
+    "exiasr.hadolint"
+  ]
+}

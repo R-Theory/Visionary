@@ -1,34 +1,61 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/markdown
 {
-	"name": "Markdown Editing",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/base:bullseye",
-
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
-
-	// Configure tool-specific properties.
+	"name": "Visionary Development",
+	"build": {
+		"dockerfile": "../Dockerfile",
+		"context": ".."
+	},
 	"customizations": {
-		// Configure properties specific to VS Code.
-		"vscode": {			
-			// Add the IDs of extensions you want installed when the container is created.
+		"vscode": {
 			"extensions": [
+				// === Core Claude & AI ===
+				"anthropic.claude-code",
+				"anysphere.cursorpyright",
+
+				// === Core Python Development ===
+				"ms-python.python",
+				"ms-python.debugpy",
+				"charliermarsh.ruff",
+
+				// === Markdown & Documentation ===
 				"yzhang.markdown-all-in-one",
 				"streetsidesoftware.code-spell-checker",
-				"DavidAnson.vscode-markdownlint",
-				"shd101wyy.markdown-preview-enhanced",
-				"bierner.github-markdown-preview"
-			]
+				"davidanson.vscode-markdownlint",
+
+				// === Web Development ===
+				"esbenp.prettier-vscode",
+				"dbaeumer.vscode-eslint",
+				"bradlc.vscode-tailwindcss",
+				"svelte.svelte-vscode",
+
+				// === Git & Productivity ===
+				"eamodio.gitlens",
+				"aaron-bond.better-comments",
+				"usernamehw.errorlens",
+				"github.vscode-github-actions",
+
+				// === Docker & Containers ===
+				"ms-azuretools.vscode-docker",
+				"ms-azuretools.vscode-containers",
+
+				// === File Support ===
+				"redhat.vscode-yaml",
+				"ms-vscode.vscode-typescript-next",
+				"tamasfe.even-better-toml",
+				"tomoki1207.pdf",
+				"file-icons.file-icons"
+			],
+			"settings": {
+				"editor.formatOnSave": true,
+				"python.defaultInterpreterPath": "/usr/local/bin/python",
+				"python.linting.ruffEnabled": true,
+				"ruff.enable": true,
+				"[python]": {
+					"editor.defaultFormatter": "charliermarsh.ruff"
+				}
+			}
 		}
-	}
-
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "uname -a",
-
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+	},
+	"forwardPorts": [8080],
+	"postCreateCommand": "bash -c 'curl -fsSL https://raw.githubusercontent.com/anthropics/claude-code/main/install.sh | bash && echo \"export PATH=\\$PATH:\\$HOME/.local/bin\" >> ~/.bashrc && pip install -r requirements.txt'",
+	"remoteUser": "root"
 }

@@ -1,0 +1,141 @@
+# Visionary Development Stack - Docker Compose
+# Complete development environment for OpenWebUI + Visionary features
+
+version: "2"
+
+services:
+  # ================================
+  # Core Database & Cache Services
+  # ================================
+
+  # PostgreSQL - Main database
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: visionary_dev
+      POSTGRES_USER: visionary
+      POSTGRES_PASSWORD: dev_password_change_me
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+
+  # Redis - Cache, sessions, and job queue
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+  # ================================
+  # Object Storage (S3-compatible)
+  # ================================
+
+  # MinIO - S3-compatible object storage for development
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: visionary_access_key
+      MINIO_ROOT_PASSWORD: visionary_secret_key_change_me
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # Web Console
+    volumes:
+      - minio_data:/data
+
+  # MinIO Client - Auto-create buckets
+  minio-setup:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 10;
+      mc alias set visionary http://minio:9000 visionary_access_key visionary_secret_key_change_me;
+      mc mb visionary/visionary-media --ignore-existing;
+      mc mb visionary/visionary-tts-cache --ignore-existing;
+      mc anonymous set public visionary/visionary-media;
+      echo 'MinIO buckets configured successfully';
+      "
+
+  # ================================
+  # Background Workers & Services
+  # ================================
+
+  # Celery Worker - Background job processing
+  celery-worker:
+    build:
+      context: .
+      dockerfile: workers/Dockerfile
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DATABASE_URL=postgresql://visionary:dev_password_change_me@postgres:5432/visionary_dev
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=visionary_access_key
+      - MINIO_SECRET_KEY=visionary_secret_key_change_me
+    depends_on:
+      - redis
+      - postgres
+      - minio
+    volumes:
+      - ./workers:/app/workers
+      - ./shared:/app/shared
+    command: celery -A workers.celery_app worker --loglevel=info --concurrency=4
+
+  # Celery Beat - Scheduled tasks
+  celery-beat:
+    build:
+      context: .
+      dockerfile: workers/Dockerfile
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+    volumes:
+      - ./workers:/app/workers
+      - ./shared:/app/shared
+    command: celery -A workers.celery_app beat --loglevel=info
+
+  # ================================
+  # Monitoring & Development Tools
+  # ================================
+
+  # Flower - Celery task monitoring
+  flower:
+    build:
+      context: .
+      dockerfile: workers/Dockerfile
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+    command: celery -A workers.celery_app flower --port=5555
+
+  # pgAdmin - PostgreSQL admin interface
+  pgadmin:
+    image: dpage/pgadmin4:8
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@visionary.local
+      PGADMIN_DEFAULT_PASSWORD: admin_password_change_me
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  pgadmin_data:

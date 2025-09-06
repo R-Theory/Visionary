@@ -1,0 +1,73 @@
+{
+	"name": "Visionary Development",
+
+	// Use Docker Compose to set up the development environment
+	"dockerComposeFile": "../docker-compose.dev.yml",
+
+	// The service to use for the dev container
+	"service": "visionary-app",
+
+	// The workspace folder inside the container
+	"workspaceFolder": "/app",
+
+	// Let Docker Compose handle workspace mounting
+
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				// === Markdown & Documentation ===
+				"yzhang.markdown-all-in-one",
+				"streetsidesoftware.code-spell-checker",
+				"DavidAnson.vscode-markdownlint",
+
+				// === Core Python Development ===
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"charliermarsh.ruff",
+
+				// === Web Development ===
+				"esbenp.prettier-vscode",
+				"dbaeumer.vscode-eslint",
+				"bradlc.vscode-tailwindcss",
+				"formulahendry.auto-rename-tag",
+				"christian-kohler.path-intellisense",
+
+				// === Git & Productivity ===
+				"eamodio.gitlens",
+				"aaron-bond.better-comments",
+				"usernamehw.errorlens",
+
+				// === Docker & Containers ===
+				"ms-azuretools.vscode-docker",
+
+				// === Database & APIs ===
+				"ms-vscode.vscode-json",
+				"humao.rest-client",
+
+				// === File Support ===
+				"redhat.vscode-yaml",
+				"ms-vscode.vscode-typescript-next"
+			],
+
+			"settings": {
+				"editor.formatOnSave": true,
+				"python.defaultInterpreterPath": "/usr/local/bin/python",
+				"python.linting.ruffEnabled": true,
+				"ruff.enable": true,
+				"[python]": {
+					"editor.defaultFormatter": "charliermarsh.ruff"
+				}
+			}
+		}
+	},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [3000, 9001, 27017, 6379],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "chmod +x .devcontainer/postCreate.sh && .devcontainer/postCreate.sh && pip install -r requirements.txt",
+
+	// Connect as root for full system access
+	"remoteUser": "root"
+}

@@ -1,0 +1,71 @@
+services:
+  visionary-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: visionary-app
+    ports:
+      - "3000:8080"
+    volumes:
+      - .:/app
+      - visionary-data:/app/data
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017/visionary
+      - REDIS_URL=redis://redis:6379
+      - MINIO_ENDPOINT=minio:9000
+      - DEBUG=true
+      - HOT_RELOAD=true
+    depends_on:
+      - mongo
+      - redis
+      - minio
+    networks:
+      - visionary-network
+
+  mongo:
+    image: mongo:7
+    container_name: visionary-mongo
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    ports:
+      - "27017:27017"
+    networks:
+      - visionary-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: visionary-redis
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - visionary-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: visionary-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin123
+    networks:
+      - visionary-network
+
+volumes:
+  visionary-data:
+  mongo-data:
+  redis-data:
+  minio-data:
+
+networks:
+  visionary-network:
+    driver: bridge
