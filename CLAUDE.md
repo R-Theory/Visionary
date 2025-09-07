@@ -64,13 +64,24 @@ This project follows the BMAD (Bootstrap-Model-Agent-Documentation) methodology:
 3. **Agent**: AI-assisted development with clear rails and constraints
 4. **Documentation**: Comprehensive planning docs in `my-notes/` Obsidian vault
 
+## Prototype Reference
+
+Working prototype available at: `/Users/treese/Library/Mobile Documents/com~apple~CloudDocs/treese/repo/open-webui`
+
+Key components implemented:
+- ✅ Media API with upload, TTS jobs, collections (production-ready)
+- ✅ Database models integrated with OpenWebUI File system
+- ✅ MinIO storage integration with proper configuration
+- ✅ PDF.js 5.3.93 dependency resolved (no version conflicts)
+- ✅ Comprehensive test suite (38+ test execution logs)
+- ✅ BMAD scaffolding complete with agent constraints enforced
+
 ## Next Implementation Phase
 
-Based on ROADMAP.md, the next development slice focuses on:
-- Media vertical: PDF viewer + cached TTS + presigned content access via unified Files API
-- Storage: S3/MinIO with bucket and presign TTL configuration
-- Queue: Celery/RQ/Arq for TTS jobs with Redis backend
-- Frontend: Custom tab/micro-frontend approach
+**Revised Strategy** - Focus on frontend and service integration:
+- Week 1: Start services (MinIO, Redis) and validate existing backend
+- Week 2-3: Build PDF viewer and TTS UI using existing APIs  
+- Week 4: OpenWebUI navigation integration and production deployment
 
 ## Key References
 
