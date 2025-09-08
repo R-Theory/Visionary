@@ -28,12 +28,12 @@ Ensure BMAD methodology compliance at key milestones, maintaining alignment betw
 
 ---
 
-## Phase 1: Media Page MVP - Checkpoint  
+## Phase 1: Media Page MVP - Checkpoint
 **After Week 5 completion:**
 
 ### Agent Behavior Validation
 - [ ] TTS Agent: 10 requests/minute rate limit enforced
-- [ ] TTS Agent: 10,000 character text limit enforced  
+- [ ] TTS Agent: 10,000 character text limit enforced
 - [ ] TTS Agent: 24-hour cache TTL working
 - [ ] Media Agent: 100MB file size limit enforced
 - [ ] Media Agent: MIME type validation (not just extension) working
@@ -63,7 +63,7 @@ Ensure BMAD methodology compliance at key milestones, maintaining alignment betw
 - [ ] AI Knowledge Worker: Processing quality meets 80% confidence threshold
 - [ ] All agents: Event-driven communication working per architecture
 
-### Documentation Updates Required  
+### Documentation Updates Required
 - [ ] Create `docs/adrs/003-ai-model-selection.md` documenting model choice rationale
 - [ ] Create `docs/adrs/004-knowledge-integration.md` documenting OpenWebUI integration approach
 - [ ] Update `docs/AGENTS.md` with any constraint modifications discovered during testing
@@ -108,12 +108,12 @@ Ensure BMAD methodology compliance at key milestones, maintaining alignment betw
 
 ### Agent Constraint Violation Response
 1. Immediate: Disable violating agent via feature flag
-2. Investigation: Check against `docs/AGENTS.md` specifications  
+2. Investigation: Check against `docs/AGENTS.md` specifications
 3. Fix: Implement constraint enforcement
 4. Documentation: Update ADR with root cause and resolution
 5. Prevention: Add monitoring alert for constraint violation
 
-### Documentation Drift Response  
+### Documentation Drift Response
 1. Identify: Compare implementation vs `docs/AGENTS.md`
 2. Reconcile: Update documentation OR fix implementation
 3. ADR: Document decision rationale

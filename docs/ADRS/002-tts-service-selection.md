@@ -16,7 +16,7 @@ Visionary requires text-to-speech functionality for PDF pages to enable listenin
 Implement **Speechify API as primary** with **local TTS fallback architecture**:
 
 1. **Primary**: Speechify API for high-quality synthesis
-2. **Fallback**: Piper TTS (local) for offline/cost optimization  
+2. **Fallback**: Piper TTS (local) for offline/cost optimization
 3. **Cache layer**: 24-hour TTL per agent constraints
 4. **Rate limiting**: Strict enforcement of 10 requests/minute per user
 

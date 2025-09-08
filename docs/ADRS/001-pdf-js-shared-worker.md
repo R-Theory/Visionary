@@ -7,7 +7,7 @@ Visionary requires PDF viewing capabilities that can handle large documents (100
 **Background and forces at play:**
 - Large PDFs (300+ pages) must load quickly (<5 seconds first page)
 - Memory usage must remain reasonable with multiple PDF tabs open
-- OpenWebUI's existing PDF.js version must not conflict with our implementation  
+- OpenWebUI's existing PDF.js version must not conflict with our implementation
 - Browser compatibility varies significantly for shared workers
 - TTS integration requires page-level text extraction
 - Mobile browser limitations with iframe and worker support
@@ -17,7 +17,7 @@ Visionary requires PDF viewing capabilities that can handle large documents (100
 Implement **PDF.js Shared Worker** architecture with fallback strategies:
 
 1. **Primary**: Shared worker using PDF.js version matching OpenWebUI's exact version
-2. **Secondary**: Dedicated worker per tab if shared workers unavailable  
+2. **Secondary**: Dedicated worker per tab if shared workers unavailable
 3. **Tertiary**: Direct PDF.js integration without workers for incompatible browsers
 
 **Architecture components:**
@@ -35,7 +35,7 @@ Implement **PDF.js Shared Worker** architecture with fallback strategies:
 - Better browser compatibility
 - Easier debugging and development
 
-**Cons:**  
+**Cons:**
 - Poor performance with large PDFs (>100MB)
 - Memory duplication across multiple tabs
 - UI blocking during PDF processing
@@ -52,7 +52,7 @@ Implement **PDF.js Shared Worker** architecture with fallback strategies:
 - Higher resource usage with multiple PDFs open
 - Complex state management per worker
 
-### Option C: Server-Side PDF Processing 
+### Option C: Server-Side PDF Processing
 **Pros:**
 - No browser memory limitations
 - Consistent processing environment
@@ -60,7 +60,7 @@ Implement **PDF.js Shared Worker** architecture with fallback strategies:
 
 **Cons:**
 - Higher server resource requirements
-- Network overhead for page requests  
+- Network overhead for page requests
 - Increased infrastructure complexity
 - Poor offline functionality
 
@@ -82,7 +82,7 @@ Implement **PDF.js Shared Worker** architecture with fallback strategies:
 ### Follow-ups:
 - Monitor memory usage in production and adjust cache limits
 - Implement comprehensive browser compatibility testing
-- Create performance benchmarks for large PDF loading  
+- Create performance benchmarks for large PDF loading
 - Document worker debugging procedures for development team
 - Plan migration strategy if shared worker approach proves problematic
 
@@ -99,7 +99,7 @@ Implement **PDF.js Shared Worker** architecture with fallback strategies:
 
 **Success Criteria:**
 - [ ] 1000+ page PDF loads first page in <5 seconds
-- [ ] Memory usage <100MB per PDF viewer instance  
+- [ ] Memory usage <100MB per PDF viewer instance
 - [ ] Fallback works in Safari iOS and other limited browsers
 - [ ] No conflicts with OpenWebUI's PDF.js version
 - [ ] TTS integration extracts clean text per page

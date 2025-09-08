@@ -80,7 +80,7 @@ Key components implemented:
 
 **Revised Strategy** - Focus on frontend and service integration:
 - Week 1: Start services (MinIO, Redis) and validate existing backend
-- Week 2-3: Build PDF viewer and TTS UI using existing APIs  
+- Week 2-3: Build PDF viewer and TTS UI using existing APIs
 - Week 4: OpenWebUI navigation integration and production deployment
 
 ## Key References

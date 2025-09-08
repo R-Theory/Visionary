@@ -79,7 +79,7 @@
 
 ### **Agent Constraint Validation**
 - [ ] **File size limits enforced** (100MB per file)
-- [ ] **Rate limiting active** (10 TTS requests/minute/user)  
+- [ ] **Rate limiting active** (10 TTS requests/minute/user)
 - [ ] **User isolation verified** (users can only access their files)
 - [ ] **MIME type validation** (not just extension checking)
 - [ ] **Malicious file scanning** (basic pattern detection)
@@ -131,7 +131,7 @@
             memory: 1G
 
     backend:
-      build: 
+      build:
         context: .
         target: production
       environment:
@@ -216,16 +216,16 @@
   server {
       listen 443 ssl http2;
       server_name yourdomain.com;
-      
+
       ssl_certificate /path/to/cert.pem;
       ssl_certificate_key /path/to/key.pem;
-      
+
       # Frontend static files
       location / {
           root /app/frontend/dist;
           try_files $uri $uri/ /index.html;
       }
-      
+
       # API endpoints
       location /api/ {
           proxy_pass http://visionary_backend;
@@ -233,13 +233,13 @@
           proxy_set_header X-Real-IP $remote_addr;
           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
           proxy_set_header X-Forwarded-Proto $scheme;
-          
+
           # Handle large file uploads
           client_max_body_size 100M;
           proxy_read_timeout 300s;
           proxy_send_timeout 300s;
       }
-      
+
       # Media streaming with proper headers
       location /api/v1/media/stream/ {
           proxy_pass http://visionary_backend;
@@ -257,7 +257,7 @@
 
 ### **DNS Configuration**
 - [ ] **Domain DNS records** (A/AAAA records for yourdomain.com)
-- [ ] **API subdomain** (api.yourdomain.com) 
+- [ ] **API subdomain** (api.yourdomain.com)
 - [ ] **Storage subdomain** (storage.yourdomain.com for MinIO)
 - [ ] **CDN setup** (optional, for static assets)
 
@@ -334,7 +334,7 @@
 ### **Deployment Steps**
 1. [ ] **Backup existing data** (if upgrading)
 2. [ ] **Deploy infrastructure** (servers, networking)
-3. [ ] **Deploy application containers** 
+3. [ ] **Deploy application containers**
 4. [ ] **Run database migrations**
 5. [ ] **Start services in order**: PostgreSQL → Redis → MinIO → Backend → Worker
 6. [ ] **Validate health checks** pass
@@ -423,7 +423,7 @@ docker-compose scale worker=5
 
 ### **Monitoring Dashboards**
 - **Application**: https://grafana.yourdomain.com
-- **Infrastructure**: https://monitoring.yourdomain.com  
+- **Infrastructure**: https://monitoring.yourdomain.com
 - **Logs**: https://logs.yourdomain.com
 - **Error Tracking**: https://sentry.yourdomain.com
 

@@ -6,7 +6,7 @@
 
 **Technology Stack:**
 - **Framework:** Svelte 4.2.18 (existing in prototype)
-- **PDF Engine:** pdfjs-dist 5.3.93 (existing in prototype) 
+- **PDF Engine:** pdfjs-dist 5.3.93 (existing in prototype)
 - **Styling:** Tailwind 4.0 (existing in prototype)
 - **State:** Svelte stores + existing API patterns
 - **Build:** Vite 5.4.14 (existing in prototype)
@@ -90,32 +90,32 @@ const COLLECTION_ENDPOINTS = {
   import { onMount } from 'svelte';
   import { mediaStore } from '$lib/stores/media';
   import { authStore } from '$lib/stores/auth';
-  
+
   export let view: 'grid' | 'list' = 'grid';
   export let selectedCollection: string | null = null;
-  
+
   // Component state
   let loading = false;
   let error: string | null = null;
   let searchQuery = '';
   let sortBy = 'created_at';
-  
+
   onMount(async () => {
     await loadMediaFiles();
   });
-  
+
   async function loadMediaFiles() {
     loading = true;
     try {
       const response = await fetch('/api/media', {
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${$authStore.token}`,
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (!response.ok) throw new Error('Failed to load media');
-      
+
       const data = await response.json();
       mediaStore.set(data.media_files);
     } catch (err) {
@@ -130,14 +130,14 @@ const COLLECTION_ENDPOINTS = {
 <div class="media-library">
   <MediaUpload on:uploaded={handleFileUploaded} />
   <MediaSearch bind:query={searchQuery} {sortBy} on:filter={handleFilter} />
-  
+
   {#if loading}
     <div class="loading-spinner">Loading media files...</div>
   {:else if error}
     <div class="error-message">{error}</div>
   {:else}
-    <MediaGrid 
-      files={$mediaStore.filteredFiles} 
+    <MediaGrid
+      files={$mediaStore.filteredFiles}
       on:select={handleFileSelect}
       on:delete={handleFileDelete}
     />
@@ -145,7 +145,7 @@ const COLLECTION_ENDPOINTS = {
 </div>
 ```
 
-### **2. PDFViewer.svelte** - Core PDF Component  
+### **2. PDFViewer.svelte** - Core PDF Component
 **Purpose:** PDF viewing with TTS integration using existing pdfjs-dist
 **API Integration:** Uses /api/media/{file_id}/content for PDF data
 
@@ -154,13 +154,13 @@ const COLLECTION_ENDPOINTS = {
   import { onMount, onDestroy } from 'svelte';
   import * as pdfjsLib from 'pdfjs-dist';
   import { PDFWorker } from 'pdfjs-dist/build/pdf.worker.js';
-  
+
   export let fileId: string;
   export let fileName: string;
-  
+
   // PDF.js configuration (using existing prototype version)
   pdfjsLib.GlobalWorkerOptions.workerSrc = PDFWorker;
-  
+
   // Component state
   let pdfDocument: any = null;
   let currentPage = 1;
@@ -168,30 +168,30 @@ const COLLECTION_ENDPOINTS = {
   let scale = 1.0;
   let loading = true;
   let error: string | null = null;
-  
+
   // Canvas management for page rendering
   let canvasContainer: HTMLDivElement;
   let pageCache = new Map();
-  
+
   onMount(async () => {
     await loadPDF();
   });
-  
+
   async function loadPDF() {
     try {
       loading = true;
-      
+
       // Use existing API endpoint for PDF content
       const response = await fetch(`/api/media/${fileId}/content`, {
         headers: { 'Authorization': `Bearer ${$authStore.token}` }
       });
-      
+
       if (!response.ok) throw new Error('Failed to load PDF');
-      
+
       const pdfData = await response.arrayBuffer();
       pdfDocument = await pdfjsLib.getDocument({ data: pdfData }).promise;
       totalPages = pdfDocument.numPages;
-      
+
       await renderPage(currentPage);
     } catch (err) {
       error = err.message;
@@ -199,26 +199,26 @@ const COLLECTION_ENDPOINTS = {
       loading = false;
     }
   }
-  
+
   async function renderPage(pageNum: number) {
     if (!pdfDocument) return;
-    
+
     const page = await pdfDocument.getPage(pageNum);
     const viewport = page.getViewport({ scale });
-    
+
     // Create canvas for page rendering
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     canvas.height = viewport.height;
     canvas.width = viewport.width;
-    
+
     await page.render({ canvasContext: context, viewport }).promise;
-    
+
     // Update display
     canvasContainer.innerHTML = '';
     canvasContainer.appendChild(canvas);
   }
-  
+
   async function extractPageText(pageNum: number): Promise<string> {
     // Use existing API endpoint for text extraction
     const response = await fetch(`/api/media/${fileId}/extract-text`, {
@@ -229,21 +229,21 @@ const COLLECTION_ENDPOINTS = {
       },
       body: JSON.stringify({ page: pageNum })
     });
-    
+
     if (!response.ok) throw new Error('Failed to extract text');
     return await response.text();
   }
 </script>
 
 <div class="pdf-viewer">
-  <PDFToolbar 
-    {currentPage} 
-    {totalPages} 
+  <PDFToolbar
+    {currentPage}
+    {totalPages}
     {scale}
     on:pageChange={handlePageChange}
     on:scaleChange={handleScaleChange}
   />
-  
+
   <div class="pdf-content">
     {#if loading}
       <div class="loading">Loading PDF...</div>
@@ -251,16 +251,16 @@ const COLLECTION_ENDPOINTS = {
       <div class="error">{error}</div>
     {:else}
       <div bind:this={canvasContainer} class="pdf-page-container"></div>
-      <TTSButton 
-        {fileId} 
+      <TTSButton
+        {fileId}
         pageNumber={currentPage}
         on:textExtracted={extractPageText}
       />
     {/if}
   </div>
-  
-  <PDFNavigation 
-    {currentPage} 
+
+  <PDFNavigation
+    {currentPage}
     {totalPages}
     on:navigate={handleNavigation}
   />
@@ -275,43 +275,43 @@ const COLLECTION_ENDPOINTS = {
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import { ttsStore } from '$lib/stores/tts';
-  
+
   export let fileId: string;
   export let pageNumber: number;
-  
+
   const dispatch = createEventDispatcher();
-  
+
   // Component state
   let jobId: string | null = null;
   let jobStatus: 'idle' | 'creating' | 'queued' | 'processing' | 'completed' | 'failed' = 'idle';
   let audioUrl: string | null = null;
   let error: string | null = null;
-  
+
   // Audio playback state
   let audioElement: HTMLAudioElement;
   let isPlaying = false;
   let currentTime = 0;
   let duration = 0;
-  
+
   async function handleListenClick() {
     if (jobStatus === 'completed' && audioUrl) {
       // Play existing audio
       togglePlayback();
       return;
     }
-    
+
     // Create new TTS job using existing API
     await createTTSJob();
   }
-  
+
   async function createTTSJob() {
     try {
       jobStatus = 'creating';
       error = null;
-      
+
       // Extract text for current page (dispatched to parent)
       const pageText = await dispatch('textExtracted', pageNumber);
-      
+
       // Use existing TTS API endpoint
       const response = await fetch('/api/tts/generate', {
         method: 'POST',
@@ -326,13 +326,13 @@ const COLLECTION_ENDPOINTS = {
           voice: 'alloy' // Default voice
         })
       });
-      
+
       if (!response.ok) throw new Error('Failed to create TTS job');
-      
+
       const jobData = await response.json();
       jobId = jobData.id;
       jobStatus = 'queued';
-      
+
       // Start polling for job completion
       pollJobStatus();
     } catch (err) {
@@ -340,20 +340,20 @@ const COLLECTION_ENDPOINTS = {
       jobStatus = 'failed';
     }
   }
-  
+
   async function pollJobStatus() {
     if (!jobId) return;
-    
+
     try {
       const response = await fetch(`/api/tts/job/${jobId}`, {
         headers: { 'Authorization': `Bearer ${$authStore.token}` }
       });
-      
+
       if (!response.ok) throw new Error('Failed to get job status');
-      
+
       const jobData = await response.json();
       jobStatus = jobData.status;
-      
+
       if (jobStatus === 'completed') {
         audioUrl = jobData.audio_url;
       } else if (jobStatus === 'failed') {
@@ -367,10 +367,10 @@ const COLLECTION_ENDPOINTS = {
       jobStatus = 'failed';
     }
   }
-  
+
   function togglePlayback() {
     if (!audioElement || !audioUrl) return;
-    
+
     if (isPlaying) {
       audioElement.pause();
     } else {
@@ -380,7 +380,7 @@ const COLLECTION_ENDPOINTS = {
 </script>
 
 <div class="tts-button-container">
-  <button 
+  <button
     class="tts-button"
     class:loading={jobStatus === 'creating' || jobStatus === 'queued' || jobStatus === 'processing'}
     class:completed={jobStatus === 'completed'}
@@ -400,13 +400,13 @@ const COLLECTION_ENDPOINTS = {
       ❌ Failed
     {/if}
   </button>
-  
+
   {#if error}
     <div class="error-message">{error}</div>
   {/if}
-  
+
   {#if audioUrl}
-    <audio 
+    <audio
       bind:this={audioElement}
       src={audioUrl}
       bind:currentTime
@@ -415,7 +415,7 @@ const COLLECTION_ENDPOINTS = {
       on:pause={() => isPlaying = false}
       on:ended={() => isPlaying = false}
     ></audio>
-    
+
     {#if jobStatus === 'completed'}
       <div class="audio-progress">
         <div class="progress-bar" style="width: {(currentTime / duration) * 100}%"></div>
@@ -432,75 +432,75 @@ const COLLECTION_ENDPOINTS = {
 ```typescript
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
-  
+
   const dispatch = createEventDispatcher();
-  
+
   // Component state
   let dragOver = false;
   let uploading = false;
   let uploadProgress = 0;
   let error: string | null = null;
-  
+
   // File validation (matches prototype constraints)
   const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB from prototype
   const ALLOWED_TYPES = ['pdf', 'mp4', 'avi', 'mov', 'mp3', 'wav'];
-  
+
   function handleDragOver(event: DragEvent) {
     event.preventDefault();
     dragOver = true;
   }
-  
+
   function handleDragLeave() {
     dragOver = false;
   }
-  
+
   async function handleDrop(event: DragEvent) {
     event.preventDefault();
     dragOver = false;
-    
+
     const files = Array.from(event.dataTransfer?.files || []);
     for (const file of files) {
       await uploadFile(file);
     }
   }
-  
+
   async function handleFileSelect(event: Event) {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files || []);
-    
+
     for (const file of files) {
       await uploadFile(file);
     }
   }
-  
+
   function validateFile(file: File): boolean {
     // Size validation
     if (file.size > MAX_FILE_SIZE) {
       error = `File size exceeds 100MB limit`;
       return false;
     }
-    
+
     // Type validation (basic check, backend does full validation)
     const extension = file.name.split('.').pop()?.toLowerCase();
     if (!extension || !ALLOWED_TYPES.includes(extension)) {
       error = `File type not supported. Allowed: ${ALLOWED_TYPES.join(', ')}`;
       return false;
     }
-    
+
     return true;
   }
-  
+
   async function uploadFile(file: File) {
     if (!validateFile(file)) return;
-    
+
     try {
       uploading = true;
       uploadProgress = 0;
       error = null;
-      
+
       const formData = new FormData();
       formData.append('file', file);
-      
+
       // Use existing upload endpoint from prototype
       const response = await fetch('/api/media/upload', {
         method: 'POST',
@@ -509,15 +509,15 @@ const COLLECTION_ENDPOINTS = {
         },
         body: formData
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || 'Upload failed');
       }
-      
+
       const uploadedFile = await response.json();
       dispatch('uploaded', uploadedFile);
-      
+
     } catch (err) {
       error = err.message;
     } finally {
@@ -527,7 +527,7 @@ const COLLECTION_ENDPOINTS = {
   }
 </script>
 
-<div 
+<div
   class="upload-area"
   class:drag-over={dragOver}
   class:uploading={uploading}
@@ -548,9 +548,9 @@ const COLLECTION_ENDPOINTS = {
       <p>Drag and drop files here, or</p>
       <label class="file-select-button">
         Choose Files
-        <input 
-          type="file" 
-          multiple 
+        <input
+          type="file"
+          multiple
           accept=".pdf,.mp4,.avi,.mov,.mp3,.wav"
           on:change={handleFileSelect}
           hidden
@@ -562,7 +562,7 @@ const COLLECTION_ENDPOINTS = {
       </p>
     </div>
   {/if}
-  
+
   {#if error}
     <div class="error-message">{error}</div>
   {/if}
@@ -667,19 +667,19 @@ import type { MediaFile } from '../stores/media';
 
 export class MediaApiService {
   constructor(private baseUrl: string = '/api') {}
-  
+
   async uploadFile(file: File): Promise<MediaFile> {
     // Matches existing prototype endpoint exactly
   }
-  
+
   async getMediaFiles(): Promise<MediaFile[]> {
     // Uses existing /api/media endpoint
   }
-  
+
   async deleteFile(fileId: string): Promise<void> {
     // Uses existing DELETE endpoint
   }
-  
+
   // ... other methods matching prototype API
 }
 ```
